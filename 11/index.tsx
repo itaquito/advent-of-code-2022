@@ -83,7 +83,7 @@ async function firstPart() {
 //firstPart();
 
 async function secondPart() {
-  const data = await fs.readFile("./input.test.txt", { encoding: "utf8" });
+  const data = await fs.readFile("./input.txt", { encoding: "utf8" });
 
   const lines: string[] = data.split("\r\n");
 
@@ -102,9 +102,16 @@ async function secondPart() {
     monkeys.push(currentMonkey);
   }
 
+  // We multiply all the "test"
+  let modSum = BigInt(1);
+  for (let i = 0; i < monkeys.length; i++) {
+    modSum = modSum * monkeys[i].test;
+  }
+
   // Execute the actions
   for (let m = 0; m < 10000; m++) {
     console.log(`>> Round ${m + 1}:`);
+
     for (let i = 0; i < monkeys.length; i++) {
       //console.log(`Monkey ${i}:`);
       const { items, operationFormat, test, ifTrue, ifFalse } = monkeys[i];
@@ -116,16 +123,16 @@ async function secondPart() {
         const newWorryLevel = calculateWorryLevelBigInt(operationFormat, item);
         //console.log(`    Worry level is ${operationFormat.join(" ")} to ${newWorryLevel}.`);
 
-        //const boredWorryLevel = Math.floor(newWorryLevel / 3);
+        const boredWorryLevel = newWorryLevel % modSum;
         //console.log(`    Monkey gets bored with item. Worry level is divided by 3 to ${boredWorryLevel}.`);
 
-        if (!(newWorryLevel % test)) {
+        if (!(boredWorryLevel % test)) {
           //console.log(`    Current worry level is divisible by ${test}.`);
-          monkeys[ifTrue].items.push(newWorryLevel);
+          monkeys[ifTrue].items.push(boredWorryLevel);
           //console.log(`    Item with worry level ${newWorryLevel} is thrown to monkey ${ifTrue}.`);
         } else {
           //console.log(`    Current worry level is not divisible by ${test}.`);
-          monkeys[ifFalse].items.push(newWorryLevel);
+          monkeys[ifFalse].items.push(boredWorryLevel);
           //console.log(`    Item with worry level ${newWorryLevel} is thrown to monkey ${ifFalse}.`);
         }
       }
@@ -140,6 +147,8 @@ async function secondPart() {
   monkeys.sort((a, b) => b.itemsInspected - a.itemsInspected);
 
   const result = monkeys[0].itemsInspected * monkeys[1].itemsInspected;
+
+  console.log(monkeys[0].itemsInspected, monkeys[1].itemsInspected);
 
   console.log("Result:", result);
 }
@@ -180,6 +189,6 @@ function calculateWorryLevelBigInt(operationFormat: string[], old: bigint): bigi
       return firstNumber * secondNumber;
     default:
       console.error("Invalid operation symbol", symbol);
-      return BigInt(0);
+      return BigInt(-1);
   }
 }
